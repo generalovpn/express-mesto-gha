@@ -49,7 +49,7 @@ module.exports.updateUser = (req, res) => {
   return User.findOneAndUpdate(
     req.user._id,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   ).orFail(() => new Error('NotFound'))
     .then((user) => res.status(200).send(user))
     .catch((err) => {
