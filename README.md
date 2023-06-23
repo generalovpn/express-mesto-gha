@@ -14,3 +14,6 @@
 
 `npm run start` — запускает сервер   
 `npm run dev` — запускает сервер с hot-reload
+
+Результаты проделанной работы можно посмотреть здесь:
+[https://generalovpn.github.io/express-mesto-gha].
