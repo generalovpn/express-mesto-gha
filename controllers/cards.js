@@ -1,76 +1,111 @@
-const Cards = require('../models/card');
-const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/errors');
+const http2 = require('http2');
+const Card = require('../models/card');
 
-module.exports.getCards = (req, res) => {
-  Cards.find({})
-    .then((cards) => res.status(200).send(cards))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' }));
+const getCards = (req, res) => {
+  Card.find({})
+    .then((cards) => res.status(http2.constants.STATUS_OK).send(cards))
+    .catch(() => {
+      res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    });
 };
 
-module.exports.createCard = (req, res) => {
+const createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
-  return Cards.create({ name, link, owner })
-    .then((card) => {
-      res.status(200).send(card);
+  Card.create({ name, link, owner })
+    .then((newCard) => {
+      res.status(http2.constants.STATUS_CREATED).send(newCard);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании карточки' });
+        res.status(http2.constants.STATUS_BAD_REQUEST).send({ message: Object.values(err.errors).map((error) => error.message).join(', ') });
       } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+const deleteCard = (req, res) => {
   const { cardId } = req.params;
-  return Cards.findByIdAndRemove(cardId)
-    .orFail(() => new Error('NotFound'))
-    .then((card) => res.status(200).send(card))
+  Card.findById(req.params)
+    .then((card) => {
+      if (!card) {
+        res.status(http2.constants.STATUS_NOT_FOUND).send({ message: `Карточка с указанным id: ${cardId} не найдена` });
+      } else {
+        Card.findByIdAndRemove(cardId)
+          .then((removedCard) => res.status(http2.constants.STATUS_OK).send(removedCard))
+          .catch(() => {
+            res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+          });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else if (err.name === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена' });
+        res.status(http2.constants.STATUS_BAD_REQUEST).send({ message: `Карточка с указанным id: ${cardId} не существует в базе данных` });
       } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
 
-module.exports.likeCard = (req, res) => {
-  Cards.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true },
-  ).orFail(() => new Error('NotFound'))
-    .then((card) => res.status(200).send(card))
+const likeCard = (req, res) => {
+  const { cardId } = req.params;
+  Card.findById(cardId)
+    .then((card) => {
+      if (!card) {
+        res.status(http2.constants.STATUS_NOT_FOUND).send({ message: `Карточка с указанным id: ${cardId} не найдена` });
+      } else {
+        Card.findByIdAndUpdate(
+          req.params.cardId,
+          { $addToSet: { likes: req.user._id } },
+          { new: true },
+        )
+          .then((removedCard) => res.status(http2.constants.STATUS_OK).send(removedCard))
+          .catch(() => {
+            res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+          });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для лайка' });
-      } else if (err.message === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
+        res.status(http2.constants.STATUS_BAD_REQUEST).send({ message: `Карточка с указанным id: ${cardId} не существует в базе данных` });
       } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
-  Cards.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  ).orFail(() => new Error('NotFound'))
-    .then((card) => res.status(200).send(card))
+const dislikeCard = (req, res) => {
+  const { cardId } = req.params;
+  Card.findById(cardId)
+    .then((card) => {
+      if (!card) {
+        res.status(http2.constants.STATUS_NOT_FOUND).send({ message: `Карточка с указанным id: ${cardId} не найдена` });
+      } else {
+        Card.findByIdAndUpdate(
+          req.params.cardId,
+          { $pull: { likes: req.user._id } },
+          { new: true },
+        )
+          .then((removedCard) => res.status(http2.constants.STATUS_OK).send(removedCard))
+          .catch(() => {
+            res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+          });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для дизлайка' });
-      } else if (err.name === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
+        res.status(http2.constants.STATUS_BAD_REQUEST).send({ message: `Карточка с указанным id: ${cardId} не существует в базе данных` });
       } else {
-        res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
+};
+
+module.exports = {
+  getCards,
+  createCard,
+  deleteCard,
+  likeCard,
+  dislikeCard,
 };
