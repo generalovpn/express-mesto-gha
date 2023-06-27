@@ -2,28 +2,28 @@ const http2 = require('http2');
 const User = require('../models/user');
 
 const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(http2.constants.HTTP_STATUS_OK).send(users))
+  User.find({}).then((users) => res.status(http2.constants.HTTP_STATUS_OK).send(users))
     .catch(() => {
-      res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
     });
 };
 
 const getUserById = (req, res) => {
   const { userId } = req.params;
+
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден` });
+        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден.` });
       } else {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({ message: `Получение пользователя с некорректным id: ${userId}` });
+        res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({ message: `Получение пользователя с некорректным id: ${userId}.` });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
       }
     });
 };
@@ -46,47 +46,48 @@ const createUser = (req, res) => {
     });
 };
 
-const updateUser = (req, res) => {
+const updateUserById = (req, res) => {
   const { name, about } = req.body;
   const userId = req.user._id;
-  User.findOneAndUpdate(
-    userId,
-    { name, about },
-    { new: true, runValidators: true },
-  ).then((user) => {
-    if (!user) {
-      res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден` });
-    } else {
-      res.status(http2.constants.HTTP_STATUS_OK).send(user);
-    }
-  })
+
+  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден.` });
+      } else {
+        res.status(http2.constants.HTTP_STATUS_OK).send(user);
+      }
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({ message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}` });
+        res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({
+          message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`,
+        });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
       }
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatarById = (req, res) => {
   const { avatar } = req.body;
-  User.findOneAndUpdate(
-    req.user._id,
-    { avatar },
-    { new: true, runValidators: true },
-  ).then((user) => {
-    if (!user) {
-      res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${req.user._id} не найден` });
-    } else {
-      res.status(http2.constants.HTTP_STATUS_OK).send(user);
-    }
-  })
+  const userId = req.user._id;
+
+  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден.` });
+      } else {
+        res.status(http2.constants.HTTP_STATUS_OK).send(user);
+      }
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({ message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}` });
+        res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({
+          message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`,
+        });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
       }
     });
 };
@@ -95,6 +96,6 @@ module.exports = {
   getUsers,
   getUserById,
   createUser,
-  updateUser,
-  updateAvatar,
+  updateUserById,
+  updateAvatarById,
 };
