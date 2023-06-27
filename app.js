@@ -4,17 +4,18 @@ const http2 = require('http2');
 const routes = require('./routes');
 
 const { PORT = 3000 } = process.env;
-const app = express();
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
 });
 
+const app = express();
+
 app.use(express.json());
 
 app.use((req, res, next) => {
   req.user = {
-    _id: '64955b6a6d47f7bb14ef2bd3',
+    _id: '649b12a64f9f91251df85b64',
   };
 
   next();

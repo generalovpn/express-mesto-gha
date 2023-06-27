@@ -4,7 +4,7 @@ const User = require('../models/user');
 const getUsers = (req, res) => {
   User.find({}).then((users) => res.status(http2.constants.HTTP_STATUS_OK).send(users))
     .catch(() => {
-      res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+      res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
     });
 };
 
@@ -14,7 +14,7 @@ const getUserById = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден.` });
+        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден` });
       } else {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
@@ -23,7 +23,7 @@ const getUserById = (req, res) => {
       if (error.name === 'CastError') {
         res.status(http2.constants.HTTP_STATUS_BAD_REQUEST).send({ message: `Получение пользователя с некорректным id: ${userId}.` });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
@@ -41,19 +41,19 @@ const createUser = (req, res) => {
           message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`,
         });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
 
-const updateUserById = (req, res) => {
+const updateUser = (req, res) => {
   const { name, about } = req.body;
   const userId = req.user._id;
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден.` });
+        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден` });
       } else {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
@@ -64,19 +64,19 @@ const updateUserById = (req, res) => {
           message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`,
         });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
 
-const updateAvatarById = (req, res) => {
+const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
 
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден.` });
+        res.status(http2.constants.HTTP_STATUS_NOT_FOUND).send({ message: `Пользователь по указанному id: ${userId} не найден` });
       } else {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
@@ -87,7 +87,7 @@ const updateAvatarById = (req, res) => {
           message: `Пожалуйста, проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`,
         });
       } else {
-        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера.' });
+        res.status(http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
@@ -96,6 +96,6 @@ module.exports = {
   getUsers,
   getUserById,
   createUser,
-  updateUserById,
-  updateAvatarById,
+  updateUser,
+  updateAvatar,
 };
