@@ -24,12 +24,12 @@ const cardSchema = new Schema({
         ref: 'user',
       },
     ],
+    default: [],
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-  default: [],
 });
 
 module.exports = mongoose.model('card', cardSchema);
