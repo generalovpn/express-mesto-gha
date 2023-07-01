@@ -8,8 +8,8 @@ const ForbiddenError = require('../errors/ForbiddenError');
 const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(http2.constants.HTTP_STATUS_OK).send(cards))
-    .catch((err) => {
-      next(err);
+    .catch((error) => {
+      next(error);
     });
 };
 
@@ -21,11 +21,11 @@ const createCard = (req, res, next) => {
     .then((newCard) => {
       res.status(http2.constants.HTTP_STATUS_CREATED).send(newCard);
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message}`).join(' ')}`);
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        throw new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(error.errors).map((err) => `${err.message.slice(5)}`).join(' ')}`);
       } else {
-        next(err);
+        next(error);
       }
     })
     .catch(next);
@@ -43,16 +43,16 @@ const deleteCard = (req, res, next) => {
       } else {
         Card.findByIdAndRemove(cardId)
           .then((removedCard) => res.status(http2.constants.HTTP_STATUS_OK).send(removedCard))
-          .catch((err) => {
-            next(err);
+          .catch((error) => {
+            next(error);
           });
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         throw new BadRequestError(`Карточка с указанным id: ${cardId} не существует в базе данных`);
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -71,16 +71,16 @@ const likeCard = (req, res, next) => {
           { new: true },
         )
           .then((removedCard) => res.status(http2.constants.HTTP_STATUS_OK).send(removedCard))
-          .catch((err) => {
-            next(err);
+          .catch((error) => {
+            next(error);
           });
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         throw new BadRequestError(`Карточка с указанным id: ${cardId} не существует в базе данных.`);
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -99,16 +99,16 @@ const dislikeCard = (req, res, next) => {
           { new: true },
         )
           .then((removedCard) => res.status(http2.constants.HTTP_STATUS_OK).send(removedCard))
-          .catch((err) => {
-            next(err);
+          .catch((error) => {
+            next(error);
           });
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         throw new BadRequestError(`Карточка с указанным id: ${cardId} не существует в базе данных`);
       } else {
-        next(err);
+        next(error);
       }
     });
 };

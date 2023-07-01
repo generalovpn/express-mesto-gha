@@ -10,8 +10,8 @@ const ValidationError = require('../errors/ValidationError');
 
 const getUsers = (req, res, next) => {
   User.find({}).then((users) => res.status(http2.constants.HTTP_STATUS_OK).send(users))
-    .catch((err) => {
-      next(err);
+    .catch((error) => {
+      next(error);
     });
 };
 
@@ -26,11 +26,11 @@ const getCurrentUser = (req, res, next) => {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         next(new BadRequestError(`Пользователь с некорректным id: ${userId}`));
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -46,11 +46,11 @@ const getUserById = (req, res, next) => {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         next(new BadRequestError(`Пользователь с некорректным id: ${userId}`));
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -61,9 +61,10 @@ const createUser = (req, res, next) => {
     about,
     avatar,
     email,
+    password,
   } = req.body;
 
-  bcrypt.hash(req.body.password, 10)
+  bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
@@ -75,13 +76,13 @@ const createUser = (req, res, next) => {
         email: newUser.email,
       });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`));
-      } else if (err.code === 11000) {
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(error.errors).map((err) => `${err.message.slice(5)}`).join(' ')}`));
+      } else if (error.code === 11000) {
         next(new ConflictError('Пользователь с таким email существует'));
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -98,11 +99,11 @@ const updateUser = (req, res, next) => {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`));
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(error.errors).map((err) => `${err.message.slice(5)}`).join(' ')}`));
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -119,11 +120,11 @@ const updateAvatar = (req, res, next) => {
         res.status(http2.constants.HTTP_STATUS_OK).send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(err.errors).map((error) => `${error.message.slice(5)}`).join(' ')}`);
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        throw new ValidationError(`Проверьте правильность заполнения полей: ${Object.values(error.errors).map((err) => `${err.message.slice(5)}`).join(' ')}`);
       } else {
-        next(err);
+        next(error);
       }
     });
 };
@@ -141,7 +142,7 @@ const login = (req, res, next) => {
       }
       return bcrypt.compare(password, user.password)
         .then((correctPassword) => {
-          if (correctPassword) {
+          if (!correctPassword) {
             throw new UnauthorizedError('Неправильные пользователь или пароль');
           }
           const token = jwt.sign(
@@ -152,8 +153,8 @@ const login = (req, res, next) => {
           return res.send({ jwt: token });
         });
     })
-    .catch((err) => {
-      next(err);
+    .catch((error) => {
+      next(error);
     });
 };
 

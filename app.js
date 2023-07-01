@@ -4,7 +4,7 @@ const { errors } = require('celebrate');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const routes = require('./routes');
-const handleError = require('./middlewares/handleError');
+const handleErrors = require('./middlewares/handleErrors');
 
 const { PORT = 3000 } = process.env;
 
@@ -34,7 +34,7 @@ app.use(express.json());
 
 app.use(routes);
 app.use(errors());
-app.use(handleError);
+app.use(handleErrors);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
