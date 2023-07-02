@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -19,12 +20,7 @@ const getUser = (req, res, next) => {
       }
       return res.send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные'));
-      }
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 const getUserById = (req, res, next) => {
@@ -89,13 +85,15 @@ const updateUser = (req, res, next) => {
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return next(new NotFoundError('Пользователь не найден'));
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Пользователь не найден'));
+        return;
       }
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
-        return next(new BadRequestError('Переданы некорекктные данные'));
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError('Переданы некорекктные данные'));
+        return;
       }
-      return next(err);
+      next(err);
     });
 };
 
