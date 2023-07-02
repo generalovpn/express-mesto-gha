@@ -28,14 +28,15 @@ const getUserById = (req, res, next) => {
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные'));
+      if (err instanceof mongoose.Error.CastError) {
+        next(new BadRequestError('Переданы некорректные данные'));
+        return;
       }
-      if (err.name === 'DocumentNotFoundError') {
-        return next(new NotFoundError('Пользователь не найден'));
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Пользователь не найден'));
+        return;
       }
-
-      return next(err);
+      next(err);
     });
 };
 
@@ -62,14 +63,13 @@ const createUser = (req, res, next) => {
       }))
       .catch((err) => {
         if (err.code === 11000) {
-          return next(
-            new ConflictError('Пользователь с данным e-mail уже существует'),
-          );
+          next(new ConflictError('Пользователь с данным e-mail уже существует'));
         }
-        if (err.name === 'ValidationError') {
-          return next(new BadRequestError('Переданы некорекктные данные'));
+        if (err instanceof mongoose.Error.ValidationError) {
+          next(new BadRequestError('Переданы некорекктные данные'));
+          return;
         }
-        return next(err);
+        next(err);
       });
   }).catch(next);
 };
@@ -108,13 +108,15 @@ const updateAvatar = (req, res, next) => {
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return next(new NotFoundError('Пользователь не найден'));
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Пользователь не найден'));
+        return;
       }
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
-        return next(new BadRequestError('Переданы некорекктные данные'));
+      if (err instanceof mongoose.Error.CastError || mongoose.Error.ValidationError) {
+        next(new BadRequestError('Переданы некорекктные данные'));
+        return;
       }
-      return next(err);
+      next(err);
     });
 };
 
@@ -123,9 +125,13 @@ const login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
-        expiresIn: '7d',
-      });
+      const token = jwt.sign(
+        { _id: user._id },
+        'super-strong-secret',
+        {
+          expiresIn: '7d',
+        },
+      );
       res.send({ token });
     })
     .catch(next);
